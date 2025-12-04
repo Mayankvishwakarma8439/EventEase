@@ -1,92 +1,333 @@
+// controllers/eventController.js
 import Event from "../models/Event.js";
+import mongoose from "mongoose";
 
-const getEvents =async (req,res)=>{
-try {
-    const events = await Event.find().populate("createdBy","username email").populate("attendees","username email");
-    return res.status(200).json(events);
-} catch (error) {
-    return res.status(500).json({
-        message:"Error fetching events",
-        error
-    })
-}
-}
+/**
+ * Utility: format event before sending to frontend
+ * ensures `id` exists and `registered` equals attendees.length
+ */
+const formatEvent = (evDoc) => {
+  const ev = evDoc.toObject ? evDoc.toObject() : evDoc;
+  return {
+    id: ev._id.toString(),
+    title: ev.title,
+    description: ev.description,
+    date: ev.date,
+    time: ev.time,
+    location: ev.location,
+    capacity: ev.capacity,
+    registered: Array.isArray(ev.attendees)
+      ? ev.attendees.length
+      : ev.registered || 0,
+    image: ev.image || "",
+    organizer:
+      ev.organizer || (ev.createdBy && ev.createdBy.name) || "Organizer",
+    createdBy: ev.createdBy,
+    attendees: ev.attendees || [],
+    createdAt: ev.createdAt,
+    updatedAt: ev.updatedAt,
+  };
+};
 
-const registerEvent = async (req,res)=>{
-try {
-    const {eventId} = req.params.id;
-    const userId = req.user._id;
-    const event = await Event.findById(eventId);
-    if(!event)return res.status(400).json({
-        message:"Event doesn't exist"
-    })
-    if(event.attendees.includes(userId)){
-        return res.status(400).json({
-            message:"User already registered"
-        })
+/* ----------------- GET ALL EVENTS ----------------- */
+export const getEvents = async (req, res) => {
+  try {
+    // Populate createdBy minimally (name/email) for completeness (optional)
+    const events = await Event.find()
+      .populate("createdBy", "name email")
+      .populate("attendees", "name email")
+      .sort({ date: 1, time: 1 });
+
+    const formatted = events.map(formatEvent);
+    return res.status(200).json({ success: true, events: formatted });
+  } catch (error) {
+    console.error("getEvents error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching events" });
+  }
+};
+
+/* ----------------- GET SINGLE EVENT BY ID ----------------- */
+export const getEventById = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event id" });
     }
-    event.attendees.push(userId)
+
+    const event = await Event.findById(eventId)
+      .populate("createdBy", "name email")
+      .populate("attendees", "name email");
+
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
+
+    return res.status(200).json({ success: true, event: formatEvent(event) });
+  } catch (error) {
+    console.error("getEventById error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching event" });
+  }
+};
+
+/* ----------------- CREATE EVENT ----------------- */
+/*
+  Expects body: { title, description, date, time, location, capacity, image }
+  Protected route: authMiddleware required (req.user exists)
+*/
+export const createEvent = async (req, res) => {
+  try {
+    const userId = req.user && req.user._id;
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { title, description, date, time, location, capacity, image } =
+      req.body;
+
+    if (!title || !description || !date || !time || !location || !capacity) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    const newEvent = await Event.create({
+      title: title.trim(),
+      description: description.trim(),
+      date: date.toString(),
+      time: time.toString(),
+      location: location.trim(),
+      capacity: Number(capacity),
+      image: image || "",
+      organizer: req.user.name || req.user.email || "Organizer",
+      createdBy: userId,
+      attendees: [],
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Event created",
+      event: formatEvent(newEvent),
+    });
+  } catch (error) {
+    console.error("createEvent error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error creating event" });
+  }
+};
+
+/* ----------------- UPDATE EVENT ----------------- */
+/*
+  Protected. Only creator can update.
+  Accepts any of the event fields in body.
+*/
+export const updateEvent = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const userId = req.user && req.user._id;
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event id" });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
+
+    if (event.createdBy.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized to update" });
+    }
+
+    // Allowed updates
+    const allowed = [
+      "title",
+      "description",
+      "date",
+      "time",
+      "location",
+      "capacity",
+      "image",
+      "organizer",
+    ];
+    allowed.forEach((k) => {
+      if (req.body[k] !== undefined) event[k] = req.body[k];
+    });
+
+    await event.save();
+    return res.status(200).json({
+      success: true,
+      message: "Event updated",
+      event: formatEvent(event),
+    });
+  } catch (error) {
+    console.error("updateEvent error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error updating event" });
+  }
+};
+
+/* ----------------- DELETE EVENT ----------------- */
+/*
+ Protected. Only creator can delete.
+*/
+export const deleteEvent = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const userId = req.user && req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event id" });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
+
+    if (event.createdBy.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this event",
+      });
+    }
+
+    await Event.findByIdAndDelete(eventId);
+    return res.status(200).json({ success: true, message: "Event deleted" });
+  } catch (error) {
+    console.error("deleteEvent error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error deleting event" });
+  }
+};
+
+/* ----------------- REGISTER EVENT ----------------- */
+/*
+  POST /register-event/:id
+  Protected.
+*/
+export const registerEvent = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const userId = req.user && req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event id" });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
+
+    // already registered?
+    if (event.attendees.some((a) => a.toString() === userId.toString())) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already registered" });
+    }
+
+    // capacity check
+    if (event.capacity && event.attendees.length >= event.capacity) {
+      return res.status(400).json({ success: false, message: "Event is full" });
+    }
+
+    event.attendees.push(userId);
     await event.save();
 
     return res.status(200).json({
-        message:"User registered successfully"
-    })
-} catch (error) {
-    
-}
-}
-const createEvent = async (req,res)=>{
-try {
-    const {title,description} = req.body;
-    if(!title || !description)return res.status(400).json({message:"Please provide both title and description!"});
-    const userId = req.user._id;
-    const newEvent = await Event.create({
-        title,
-        description,
-        createdBy: userId,
-        attendees: []
-    })
-    return res.status(200).json({message:"Event created successfully",event:newEvent})
-} catch (error) {
-    return res.status(500).json({
-        message:"Error in creating Event",
-        error
-    })
-}
-}
-const deleteEvent =async (req,res)=>{
-try {
+      success: true,
+      message: "Registered",
+      event: formatEvent(event),
+    });
+  } catch (error) {
+    console.error("registerEvent error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error registering" });
+  }
+};
+
+/* ----------------- UNREGISTER/CANCEL REGISTRATION ----------------- */
+/*
+  POST /unregister-event/:id  (I recommend this param style)
+*/
+export const unregisterEvent = async (req, res) => {
+  try {
     const eventId = req.params.id;
-    const userId = req.user._id;
-    const event = await Event.findById(eventId)
-    if(!event)return res.status(400).json({message:"Event not found"})
-    if(event.createdBy.toString() != userId.toString()){
-        return res.status(401).json({
-            message:"Not authorized to delete this event"
-        })
+    const userId = req.user && req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid event id" });
     }
-    await Event.findByIdAndDelete(eventId)
-    res.status(200).json({
-        message:"Event deleted successfully"
-    })
-} catch (error) {
-    return res.status(500).json({
-        message:"Error deleting event",
-        error
-    })
-}
-}
-export const updateEvent = (req,res)=>{
 
-}
-export const getMyEvents = (req,res)=>{
+    const event = await Event.findById(eventId);
+    if (!event)
+      return res
+        .status(404)
+        .json({ success: false, message: "Event not found" });
 
-}
-export const getEventById = (req,res)=>{
+    const idx = event.attendees.findIndex(
+      (a) => a.toString() === userId.toString()
+    );
+    if (idx === -1) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not registered" });
+    }
 
-}
-export const unregisterEvent = (req,res)=>{
+    event.attendees.splice(idx, 1);
+    await event.save();
 
-}
+    return res.status(200).json({
+      success: true,
+      message: "Unregistered",
+      event: formatEvent(event),
+    });
+  } catch (error) {
+    console.error("unregisterEvent error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error unregistering" });
+  }
+};
 
-export {deleteEvent,getEvents,registerEvent,createEvent}
+/* ----------------- GET MY EVENTS (created by current user) ----------------- */
+export const getMyEvents = async (req, res) => {
+  try {
+    const userId = req.user && req.user._id;
+    if (!userId)
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const events = await Event.find({ createdBy: userId }).sort({
+      createdAt: -1,
+    });
+    const formatted = events.map(formatEvent);
+    return res.status(200).json({ success: true, events: formatted });
+  } catch (error) {
+    console.error("getMyEvents error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching my events" });
+  }
+};
