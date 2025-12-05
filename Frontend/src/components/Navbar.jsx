@@ -14,14 +14,14 @@ export default function Navbar({
           <div className="flex items-center gap-4">
             <button
               onClick={() => onPageChange("home")}
-              className="flex items-center gap-3 rounded-full px-3 py-2 bg-white/5 backdrop-blur-xs border border-white/6 hover:scale-105 transform transition"
+              className="flex cursor-pointer items-center gap-3 rounded-full px-3 py-2 bg-white/5 backdrop-blur-xs border border-white/6 hover:scale-105 transform transition"
             >
               <div className="p-2 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#06b6d4] shadow-sm">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
               <div className="text-lg font-semibold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-tr from-purple-300 to-cyan-200">
-                  EventHub
+                  EventEase
                 </span>
               </div>
             </button>
@@ -60,7 +60,7 @@ export default function Navbar({
             {user ? (
               <>
                 <div className="flex items-center gap-3">
-                  <div className="px-3 py-2 rounded-full bg-white/6 border border-white/8 text-sm">
+                  <div className="px-3 py-2 rounded-full bg-blue-400/6 border border-white/8 text-blue-300 text-sm">
                     {user.name}
                   </div>
                   <button

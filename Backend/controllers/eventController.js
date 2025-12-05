@@ -1,11 +1,6 @@
-// controllers/eventController.js
 import Event from "../models/Event.js";
 import mongoose from "mongoose";
 
-/**
- * Utility: format event before sending to frontend
- * ensures `id` exists and `registered` equals attendees.length
- */
 const formatEvent = (evDoc) => {
   const ev = evDoc.toObject ? evDoc.toObject() : evDoc;
   return {
@@ -28,11 +23,8 @@ const formatEvent = (evDoc) => {
     updatedAt: ev.updatedAt,
   };
 };
-
-/* ----------------- GET ALL EVENTS ----------------- */
 export const getEvents = async (req, res) => {
   try {
-    // Populate createdBy minimally (name/email) for completeness (optional)
     const events = await Event.find()
       .populate("createdBy", "name email")
       .populate("attendees", "name email")
@@ -47,8 +39,6 @@ export const getEvents = async (req, res) => {
       .json({ success: false, message: "Error fetching events" });
   }
 };
-
-/* ----------------- GET SINGLE EVENT BY ID ----------------- */
 export const getEventById = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -75,25 +65,24 @@ export const getEventById = async (req, res) => {
       .json({ success: false, message: "Error fetching event" });
   }
 };
-
-/* ----------------- CREATE EVENT ----------------- */
-/*
-  Expects body: { title, description, date, time, location, capacity, image }
-  Protected route: authMiddleware required (req.user exists)
-*/
 export const createEvent = async (req, res) => {
   try {
     const userId = req.user && req.user._id;
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const { title, description, date, time, location, capacity, image } =
-      req.body;
+    const { title, description, date, time, location, capacity } = req.body;
 
     if (!title || !description || !date || !time || !location || !capacity) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
+    }
+    let imageUrl = "";
+    if (req.file) {
+      imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+        req.file.filename
+      }`;
     }
 
     const newEvent = await Event.create({
@@ -103,12 +92,12 @@ export const createEvent = async (req, res) => {
       time: time.toString(),
       location: location.trim(),
       capacity: Number(capacity),
-      image: image || "",
-      organizer: req.user.name || req.user.email || "Organizer",
+      image: imageUrl,
+      organizer:
+        req.user.username || req.user.name || req.user.email || "Organizer",
       createdBy: userId,
       attendees: [],
     });
-
     return res.status(201).json({
       success: true,
       message: "Event created",
@@ -122,11 +111,6 @@ export const createEvent = async (req, res) => {
   }
 };
 
-/* ----------------- UPDATE EVENT ----------------- */
-/*
-  Protected. Only creator can update.
-  Accepts any of the event fields in body.
-*/
 export const updateEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -149,7 +133,6 @@ export const updateEvent = async (req, res) => {
         .json({ success: false, message: "Not authorized to update" });
     }
 
-    // Allowed updates
     const allowed = [
       "title",
       "description",
@@ -178,10 +161,6 @@ export const updateEvent = async (req, res) => {
   }
 };
 
-/* ----------------- DELETE EVENT ----------------- */
-/*
- Protected. Only creator can delete.
-*/
 export const deleteEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -216,11 +195,6 @@ export const deleteEvent = async (req, res) => {
   }
 };
 
-/* ----------------- REGISTER EVENT ----------------- */
-/*
-  POST /register-event/:id
-  Protected.
-*/
 export const registerEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -238,14 +212,12 @@ export const registerEvent = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Event not found" });
 
-    // already registered?
     if (event.attendees.some((a) => a.toString() === userId.toString())) {
       return res
         .status(400)
         .json({ success: false, message: "User already registered" });
     }
 
-    // capacity check
     if (event.capacity && event.attendees.length >= event.capacity) {
       return res.status(400).json({ success: false, message: "Event is full" });
     }
@@ -266,10 +238,6 @@ export const registerEvent = async (req, res) => {
   }
 };
 
-/* ----------------- UNREGISTER/CANCEL REGISTRATION ----------------- */
-/*
-  POST /unregister-event/:id  (I recommend this param style)
-*/
 export const unregisterEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -311,8 +279,6 @@ export const unregisterEvent = async (req, res) => {
       .json({ success: false, message: "Error unregistering" });
   }
 };
-
-/* ----------------- GET MY EVENTS (created by current user) ----------------- */
 export const getMyEvents = async (req, res) => {
   try {
     const userId = req.user && req.user._id;

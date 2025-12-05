@@ -9,16 +9,18 @@ export default function HomePage({
   const registeredEventIds = (registeredEvents || []).map((e) => e.id);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Hero */}
       <section className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
         <div className="lg:col-span-2">
           <div className="rounded-2xl bg-gradient-to-tr from-white/4 to-white/3 border border-white/6 p-10 backdrop-blur-md shadow-xl">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-tr from-[#c4b5fd] to-[#67e8f9]">
-              Discover events that spark connection
+            <h1 className="text-4xl pb-1 md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-tr from-[#c4b5fd] to-[#67e8f9]">
+              EventEase — Effortless Event Discovery & Management
             </h1>
+
             <p className="mt-4 text-white/80 max-w-2xl">
-              Curated events — conferences, festivals, meetups and workshops.
-              Find something that fits your vibe and register instantly.
+              From meetups to mega-conferences, EventEase brings every event to
+              your fingertips. Explore, register, and organize with a platform
+              designed to make event planning feel intuitive, fast, and
+              stress-free.
             </p>
 
             <div className="mt-6 flex gap-3">

@@ -20,8 +20,7 @@ export default function DashboardPage({
     time: "",
     location: "",
     capacity: "",
-    image:
-      "https://images.unsplash.com/photo-1505373877841-8e2e717b171c?q=80&w=1770&auto=format&fit=crop",
+    image: "",
   });
 
   const handleCreateSubmit = async (e) => {

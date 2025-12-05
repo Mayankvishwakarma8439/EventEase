@@ -154,13 +154,21 @@ function App() {
     try {
       const token = localStorage.getItem("token");
 
+      const form = new FormData();
+      form.append("title", eventData.title);
+      form.append("description", eventData.description);
+      form.append("date", eventData.date);
+      form.append("time", eventData.time);
+      form.append("location", eventData.location);
+      form.append("capacity", eventData.capacity);
+      form.append("image", eventData.image);
+
       const res = await fetch(`${API_BASE_URL}/create-event`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(eventData),
+        body: form,
       });
 
       const data = await res.json();
@@ -169,14 +177,14 @@ function App() {
         alert(data.message || "Failed to create event");
         return { success: false };
       }
+
       const createdEvent = data.event;
-      // Update state
       setMyCreatedEvents((prev) => [createdEvent, ...prev]);
       setEvents((prev) => [createdEvent, ...prev]);
 
       return { success: true };
-    } catch (error) {
-      console.error("Create event failed:", error);
+    } catch (err) {
+      console.error("Create event failed:", err);
       return { success: false };
     }
   };

@@ -63,7 +63,7 @@ export default function EventCard({ event, onRegister, user, isRegistered }) {
           <button
             onClick={() => onRegister(event.id)}
             disabled={isRegistered}
-            className={`w-full py-2 rounded-lg font-semibold text-sm transition transform ${
+            className={`w-full py-2 rounded-lg cursor-pointer font-semibold text-sm transition transform ${
               isRegistered
                 ? "bg-white/10 text-white/60 cursor-not-allowed"
                 : "bg-gradient-to-r from-[#7c3aed] to-[#06b6d4] text-black hover:scale-105"

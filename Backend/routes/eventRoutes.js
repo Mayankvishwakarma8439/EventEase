@@ -10,13 +10,19 @@ import {
   updateEvent,
 } from "../controllers/eventController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
 //TODO NOW:
 router.get("/events", getEvents);
 router.post("/register-event/:id", authMiddleware, registerEvent);
-router.post("/create-event", authMiddleware, createEvent);
+router.post(
+  "/create-event",
+  authMiddleware,
+  upload.single("image"),
+  createEvent
+);
 router.delete("/events/:id", authMiddleware, deleteEvent);
 
 //TODO LATER:

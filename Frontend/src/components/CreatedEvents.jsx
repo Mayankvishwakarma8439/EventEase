@@ -12,7 +12,6 @@ export default function CreatedEventsSection({
 }) {
   return (
     <div>
-      {/* header with button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-white/90">
           Events You Organized
@@ -27,7 +26,6 @@ export default function CreatedEventsSection({
         </button>
       </div>
 
-      {/* CREATE EVENT FORM */}
       {showCreateForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="relative w-full max-w-lg bg-black/80 border border-white/15 rounded-2xl shadow-2xl p-8 animate-fadeIn">
@@ -92,15 +90,40 @@ export default function CreatedEventsSection({
                 className="glass-input"
               />
 
-              <input
-                type="url"
-                placeholder="Image URL"
-                value={formData.image}
-                onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
-                }
-                className="glass-input"
-              />
+              <div className="sm:col-span-2 mt-4 flex flex-col gap-2">
+                <label className="text-white/70 mb-2 font-medium">
+                  Event Thumbnail
+                </label>
+
+                <div className="relative">
+                  <input
+                    id="eventImage"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      setFormData({ ...formData, image: e.target.files[0] })
+                    }
+                  />
+
+                  <div
+                    onClick={() =>
+                      document.getElementById("eventImage").click()
+                    }
+                    className="glass-input w-full cursor-pointer flex items-center justify-between px-4 py-3"
+                  >
+                    <span className="text-white/60">
+                      {formData.image
+                        ? formData.image.name
+                        : "Choose event thumbnail"}
+                    </span>
+
+                    <span className="px-3 py-1 rounded-lg bg-gradient-to-tr from-[#7c3aed] to-[#06b6d4] text-black text-sm font-semibold">
+                      Browse
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               <textarea
                 required
@@ -110,18 +133,16 @@ export default function CreatedEventsSection({
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows="3"
-                className="glass-input sm:col-span-2"
+                className="glass-input h-[150px] sm:col-span-2"
               />
 
               <button
                 type="submit"
-                className="sm:col-span-2 py-3 rounded-xl bg-gradient-to-tr from-[#7c3aed] to-[#06b6d4] text-black font-semibold hover:scale-[1.03] transition"
+                className="sm:col-span-2 py-3 rounded-xl bg-gradient-to-tr cursor-pointer from-[#7c3aed] to-[#06b6d4] text-black font-semibold hover:scale-[1.03] transition"
               >
                 Create Event
               </button>
             </form>
-
-            {/* close button */}
             <button
               onClick={() => setShowCreateForm(false)}
               className="absolute top-4 cursor-pointer right-4 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-white/80"
@@ -131,8 +152,6 @@ export default function CreatedEventsSection({
           </div>
         </div>
       )}
-
-      {/* CREATED EVENTS LIST */}
       {createdEvents.length === 0 ? (
         <div className="p-10 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-lg text-center text-white/70 shadow-xl">
           You haven’t created any events yet.
@@ -146,7 +165,7 @@ export default function CreatedEventsSection({
               actionButton={
                 <button
                   onClick={() => onDeleteEvent(event.id)}
-                  className="w-full py-2 rounded-lg bg-red-500/20 border border-red-400/40 text-red-300 font-medium hover:bg-red-500/30 transition"
+                  className="w-full py-2 rounded-lg cursor-pointer bg-red-500/20 border border-red-400/40 text-red-300 font-medium hover:bg-red-500/30 transition"
                 >
                   Delete Event
                 </button>
