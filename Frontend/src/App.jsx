@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import toast, { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import HomePage from "./components/Home";
 import LoginPage from "./components/Login";
@@ -112,13 +112,13 @@ function App() {
   const handleRegisterEvent = async (eventId) => {
     if (!user) {
       setCurrentPage("login");
-      alert("Please login first");
+      toast.error("Please login first");
       return;
     }
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You must login again.");
+        toast("You must login again.");
         return;
       }
       const res = await fetch(`${API_BASE_URL}/register-event/${eventId}`, {
@@ -129,7 +129,7 @@ function App() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.message);
+        toast(data.message);
         return;
       }
       const updatedEvent = data.event;
@@ -143,15 +143,19 @@ function App() {
         return prev;
       });
 
-      alert("Registered successfully!");
+      toast.success("Registered successfully!");
     } catch (err) {
       console.error("Register event failed:", err);
-      alert("Something went wrong while registering");
+      toast.error("Something went wrong while registering");
     }
   };
 
   const handleCreateEvent = async (eventData) => {
     try {
+      if (eventData.capacity == 0) {
+        toast.error("Capacity can't be zero.");
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const form = new FormData();
@@ -174,7 +178,7 @@ function App() {
       const data = await res.json();
 
       if (!data.success) {
-        alert(data.message || "Failed to create event");
+        toast.error(data.message || "Failed to create event");
         return { success: false };
       }
 
@@ -193,7 +197,7 @@ function App() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Please login first");
+        toast.error("Please login first");
         return;
       }
       const res = await fetch(`${API_BASE_URL}/events/${eventId}`, {
@@ -204,29 +208,29 @@ function App() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || "Failed to delete event");
+        toast.error(data.message || "Failed to delete event");
         return;
       }
       setMyCreatedEvents((prev) => prev.filter((ev) => ev.id !== eventId));
       setEvents((prev) => prev.filter((ev) => ev.id !== eventId));
       setRegisteredEvents((prev) => prev.filter((ev) => ev.id !== eventId));
-      alert("Event deleted successfully!");
+      toast.success("Event deleted successfully!");
     } catch (err) {
       console.error("Delete event error:", err);
-      alert("Server error while deleting");
+      toast.error("Server error while deleting");
     }
   };
 
   const handleCancelRegistration = async (eventId) => {
     if (!user) {
-      alert("Please login first");
+      toast.error("Please login first");
       setCurrentPage("login");
       return;
     }
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Session expired. Login again.");
+        toast.error("Session expired. Login again.");
         return;
       }
       const res = await fetch(`${API_BASE_URL}/unregister-event/${eventId}`, {
@@ -237,7 +241,7 @@ function App() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.message);
+        toast(data.message);
         return;
       }
       const updatedEvent = data.event;
@@ -247,10 +251,10 @@ function App() {
       setEvents((prev) =>
         prev.map((ev) => (ev.id === updatedEvent.id ? updatedEvent : ev))
       );
-      alert("Registration cancelled successfully!");
+      toast.success("Registration cancelled successfully!");
     } catch (err) {
       console.error("Cancel registration error:", err);
-      alert("Something went wrong while cancelling");
+      toast.error("Something went wrong while cancelling");
     }
   };
 
@@ -271,46 +275,62 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f1724] via-[#071020] to-[#030316] text-gray-100">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#0b1220]/30 via-transparent to-transparent"></div>
+    <>
+      {" "}
+      <div className="min-h-screen bg-gradient-to-b from-[#0f1724] via-[#071020] to-[#030316] text-gray-100">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#0b1220]/30 via-transparent to-transparent"></div>
 
-      <Navbar
-        user={user}
-        onPageChange={setCurrentPage}
-        onLogout={handleLogout}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        <Navbar
+          user={user}
+          onPageChange={setCurrentPage}
+          onLogout={handleLogout}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+
+        <main className="pt-8 pb-16">
+          {currentPage === "home" && (
+            <HomePage
+              events={filteredEvents}
+              onRegister={handleRegisterEvent}
+              user={user}
+              registeredEvents={registeredEvents}
+            />
+          )}
+          {currentPage === "login" && (
+            <LoginPage onLogin={handleLogin} onPageChange={setCurrentPage} />
+          )}
+
+          {currentPage === "signup" && (
+            <SignupPage onSignup={handleSignup} onPageChange={setCurrentPage} />
+          )}
+
+          {currentPage === "dashboard" && user && (
+            <DashboardPage
+              user={user}
+              registeredEvents={registeredEvents}
+              createdEvents={myCreatedEvents}
+              onCreateEvent={handleCreateEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onCancelRegistration={handleCancelRegistration}
+            />
+          )}
+        </main>
+      </div>
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "rgba(17, 24, 39, 0.7)",
+            color: "#e0e7ff",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
+          },
+        }}
       />
-
-      <main className="pt-8 pb-16">
-        {currentPage === "home" && (
-          <HomePage
-            events={filteredEvents}
-            onRegister={handleRegisterEvent}
-            user={user}
-            registeredEvents={registeredEvents}
-          />
-        )}
-        {currentPage === "login" && (
-          <LoginPage onLogin={handleLogin} onPageChange={setCurrentPage} />
-        )}
-
-        {currentPage === "signup" && (
-          <SignupPage onSignup={handleSignup} onPageChange={setCurrentPage} />
-        )}
-
-        {currentPage === "dashboard" && user && (
-          <DashboardPage
-            user={user}
-            registeredEvents={registeredEvents}
-            createdEvents={myCreatedEvents}
-            onCreateEvent={handleCreateEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onCancelRegistration={handleCancelRegistration}
-          />
-        )}
-      </main>
-    </div>
+    </>
   );
 }
 

@@ -49,12 +49,14 @@ export default function Navbar({
               >
                 Explore
               </button>
-              <button
-                onClick={() => onPageChange("dashboard")}
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/6 transition"
-              >
-                My Dashboard
-              </button>
+              {user && (
+                <button
+                  onClick={() => onPageChange("dashboard")}
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/6 transition"
+                >
+                  My Dashboard
+                </button>
+              )}
             </div>
 
             {user ? (

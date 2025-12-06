@@ -36,38 +36,43 @@ export default function HomePage({
           </div>
         </div>
 
-        <aside className="hidden lg:block">
-          <div className="rounded-2xl bg-white/3 border border-white/6 p-4 backdrop-blur-md shadow-lg">
+        <aside className="hidden lg:block h-full">
+          <div className="rounded-2xl bg-white/3 border border-white/6 p-4 backdrop-blur-md shadow-lg h-full">
             <h3 className="text-sm font-semibold text-white/90">
               Recent Events
             </h3>
-            <ul className="mt-3 space-y-3">
-              {events.slice(0, 4).map((ev) => (
-                <li
-                  key={ev.id}
-                  className="flex gap-3 items-center p-2 rounded-md hover:bg-white/5 transition cursor-pointer"
-                >
-                  <img
-                    src={ev.image}
-                    alt={ev.title}
-                    className="w-12 h-8 object-cover rounded-md"
-                  />
-                  <div className="text-sm">
-                    <div className="font-medium text-white/90 line-clamp-1">
-                      {ev.title}
+            {events.length == 0 ? (
+              <div className="flex justify-center text-white/70 items-center">
+                No recent events
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {events.slice(0, 4).map((ev) => (
+                  <li
+                    key={ev.id}
+                    className="flex gap-3 items-center p-2 rounded-md hover:bg-white/5 transition cursor-pointer"
+                  >
+                    <img
+                      src={ev.image}
+                      alt={ev.title}
+                      className="w-12 h-8 object-cover rounded-md"
+                    />
+                    <div className="text-sm">
+                      <div className="font-medium text-white/90 line-clamp-1">
+                        {ev.title}
+                      </div>
+                      <div className="text-xs text-white/60">
+                        {ev.date} • {ev.location}
+                      </div>
                     </div>
-                    <div className="text-xs text-white/60">
-                      {ev.date} • {ev.location}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
       </section>
 
-      {/* Events Grid */}
       <section className="mt-10">
         {events.length === 0 ? (
           <div className="rounded-xl p-12 bg-white/3 border border-white/6 text-center text-white/70">

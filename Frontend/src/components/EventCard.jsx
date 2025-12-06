@@ -2,9 +2,8 @@ import { Calendar, CheckCircle, MapPin, Users } from "lucide-react";
 
 export default function EventCard({ event, onRegister, user, isRegistered }) {
   return (
-    <div className="relative group rounded-2xl overflow-hidden border border-white/6 bg-gradient-to-tr from-white/4 to-white/3 backdrop-blur-md p-0 shadow-lg transform transition hover:-translate-y-2">
-      {/* image */}
-      <div className="relative h-44 overflow-hidden">
+    <div className="relative group rounded-2xl overflow-hidden border border-white/6 bg-gradient-to-tr from-white/4 to-white/3 backdrop-blur-md p-0 shadow-lg transform transition hover:-translate-y-2 h-full flex flex-col">
+      <div className="relative h-44 overflow-hidden flex-shrink-0">
         <img
           src={event.image}
           alt={event.title}
@@ -31,31 +30,32 @@ export default function EventCard({ event, onRegister, user, isRegistered }) {
         </div>
       </div>
 
-      {/* content */}
-      <div className="p-5">
-        <h3 className="text-lg font-semibold text-white/95 line-clamp-1">
-          {event.title}
-        </h3>
-        <p className="mt-2 text-sm text-white/70 line-clamp-2">
-          {event.description}
-        </p>
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-white/95 line-clamp-1">
+            {event.title}
+          </h3>
+          <p className="mt-2 text-sm text-white/70 line-clamp-2">
+            {event.description}
+          </p>
 
-        <div className="mt-4 grid grid-cols-1 gap-2">
-          <div className="flex items-center text-xs text-white/70 gap-2">
-            <Calendar className="w-4 h-4 text-[#a78bfa]" />
-            <span>
-              {event.date} • {event.time}
-            </span>
-          </div>
+          <div className="mt-4 grid grid-cols-1 gap-2">
+            <div className="flex items-center text-xs text-white/70 gap-2">
+              <Calendar className="w-4 h-4 text-[#a78bfa]" />
+              <span>
+                {event.date} • {event.time}
+              </span>
+            </div>
 
-          <div className="flex items-center text-xs text-white/70 gap-2">
-            <MapPin className="w-4 h-4 text-[#67e8f9]" />
-            <span>{event.location}</span>
-          </div>
+            <div className="flex items-center text-xs text-white/70 gap-2">
+              <MapPin className="w-4 h-4 text-[#67e8f9]" />
+              <span>{event.location}</span>
+            </div>
 
-          <div className="flex items-center text-xs text-white/70 gap-2">
-            <Users className="w-4 h-4 text-[#fca5a5]" />
-            <span>By {event.organizer}</span>
+            <div className="flex items-center text-xs text-white/70 gap-2">
+              <Users className="w-4 h-4 text-[#fca5a5]" />
+              <span>By {event.organizer}</span>
+            </div>
           </div>
         </div>
 
