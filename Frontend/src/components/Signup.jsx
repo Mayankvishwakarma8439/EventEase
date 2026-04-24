@@ -1,11 +1,14 @@
 import { Calendar } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function SignupPage({ onSignup, onPageChange }) {
+export default function SignupPage({ onSignup }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("student");
+  const [department, setDepartment] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -17,11 +20,14 @@ export default function SignupPage({ onSignup, onPageChange }) {
       return;
     }
 
-    const result = await onSignup(name, email, password);
-    if (result.success) {
-      alert("Account created successfully!");
-      onPageChange("home");
-    } else {
+    const result = await onSignup({
+      username: name,
+      email,
+      password,
+      role,
+      department,
+    });
+    if (!result.success) {
       setError(result.error || "Signup failed");
     }
   };
@@ -76,6 +82,31 @@ export default function SignupPage({ onSignup, onPageChange }) {
           </div>
           <div>
             <label className="text-white/80 text-sm font-medium mb-2 block">
+              Account Type
+            </label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:ring-2 focus:ring-[#f4b860] outline-none"
+            >
+              <option value="student">Student / Attendee</option>
+              <option value="organizer">Organizer</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-white/80 text-sm font-medium mb-2 block">
+              Department
+            </label>
+            <input
+              type="text"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:ring-2 focus:ring-[#f4b860] outline-none"
+              placeholder="CSE, Marketing, HR..."
+            />
+          </div>
+          <div>
+            <label className="text-white/80 text-sm font-medium mb-2 block">
               Password
             </label>
             <input
@@ -111,12 +142,9 @@ export default function SignupPage({ onSignup, onPageChange }) {
 
         <p className="text-center mt-6 text-white/70">
           Already have an account?{" "}
-          <button
-            onClick={() => onPageChange("login")}
-            className="text-cyan-300 hover:text-cyan-200 underline font-medium"
-          >
+          <Link to="/login" className="text-cyan-300 hover:text-cyan-200 underline font-medium">
             Login
-          </button>
+          </Link>
         </p>
       </div>
     </div>

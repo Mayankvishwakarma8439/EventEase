@@ -1,100 +1,137 @@
 import { useState } from "react";
+import AdminPanel from "./AdminPanel";
+import CheckInPanel from "./CheckInPanel";
 import CreatedEventsSection from "./CreatedEvents";
 import RegisteredEventsSection from "./RegisteredEvents";
-import toast from "react-hot-toast";
+import { emptyEventForm } from "../constants/eventOptions";
 
 export default function DashboardPage({
   user,
   registeredEvents,
   createdEvents,
   onCreateEvent,
+  onUpdateEvent,
   onDeleteEvent,
   onCancelRegistration,
+  onApproveEvent,
+  adminEvents,
+  onCheckedIn,
+  onRefresh,
+  onUserRoleUpdate,
 }) {
-  const [activeTab, setActiveTab] = useState("registered");
+  const canOrganize = true;
+  const [activeTab, setActiveTab] = useState("created");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState(emptyEventForm);
+  const [editingEventId, setEditingEventId] = useState("");
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    date: "",
-    time: "",
-    location: "",
-    capacity: "",
-    image: "",
-  });
-
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    const result = await onCreateEvent(formData);
+  const handleCreateSubmit = async (event) => {
+    event.preventDefault();
+    const result = editingEventId
+      ? await onUpdateEvent(editingEventId, formData)
+      : await onCreateEvent(formData);
 
     if (result.success) {
-      setFormData({
-        title: "",
-        description: "",
-        date: "",
-        time: "",
-        location: "",
-        capacity: "",
-        image: "",
-      });
+      setFormData(emptyEventForm);
+      setEditingEventId("");
       setShowCreateForm(false);
       setActiveTab("created");
-      toast.success("Event created successfully!");
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="border-b border-white/10 pb-6 mb-10">
-        <h1 className="text-4xl font-extrabold bg-gradient-to-br from-purple-200 to-cyan-200 bg-clip-text text-transparent">
-          Welcome back, {user.name}
-        </h1>
-        <p className="text-white/60 mt-2">Manage your events and activity</p>
-      </div>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <header className="mb-8 rounded-lg border border-white/10 bg-[#17191c] p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wide text-[#f4b860]">{user.role}</p>
+            <h1 className="mt-1 text-3xl font-black text-white">Welcome back, {user.name}</h1>
+            <p className="mt-2 text-white/60">
+              Run real event operations from draft to attendance, tickets, payments, and approvals.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-md bg-white/8 p-3">
+              <div className="text-2xl font-black">{registeredEvents.length}</div>
+              <div className="text-xs text-white/55">Registered</div>
+            </div>
+            <div className="rounded-md bg-white/8 p-3">
+              <div className="text-2xl font-black">{createdEvents.length}</div>
+              <div className="text-xs text-white/55">Created</div>
+            </div>
+            <div className="rounded-md bg-white/8 p-3">
+              <div className="text-2xl font-black">
+                {createdEvents.reduce((sum, event) => sum + Number(event.checkedIn || 0), 0)}
+              </div>
+              <div className="text-xs text-white/55">Check-ins</div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <div className="flex items-center gap-6 border-b border-white/10 pb-2">
+      <div className="mb-8 flex gap-2 border-b border-white/10">
+        {canOrganize && (
+          <button
+            onClick={() => setActiveTab("created")}
+            className={`px-4 py-3 text-sm font-bold ${activeTab === "created" ? "border-b-2 border-[#f4b860] text-[#f4b860]" : "text-white/55"}`}
+          >
+            Organizer
+          </button>
+        )}
         <button
           onClick={() => setActiveTab("registered")}
-          className={`pb-2 text-md font-semibold transition ${
-            activeTab === "registered"
-              ? "text-cyan-300 border-b-2 border-cyan-300"
-              : "text-white/60 hover:text-white"
-          }`}
+          className={`px-4 py-3 text-sm font-bold ${activeTab === "registered" ? "border-b-2 border-[#f4b860] text-[#f4b860]" : "text-white/55"}`}
         >
-          Registered Events ({registeredEvents.length})
+          My Registrations
         </button>
-
-        <button
-          onClick={() => setActiveTab("created")}
-          className={`pb-2 text-md font-semibold transition ${
-            activeTab === "created"
-              ? "text-cyan-300 border-b-2 border-cyan-300"
-              : "text-white/60 hover:text-white"
-          }`}
-        >
-          My Created Events ({createdEvents.length})
-        </button>
-      </div>
-
-      <div className="mt-10">
-        {activeTab === "registered" ? (
-          <RegisteredEventsSection
-            registeredEvents={registeredEvents}
-            onCancelRegistration={onCancelRegistration}
-          />
-        ) : (
-          <CreatedEventsSection
-            createdEvents={createdEvents}
-            onDeleteEvent={onDeleteEvent}
-            showCreateForm={showCreateForm}
-            setShowCreateForm={setShowCreateForm}
-            formData={formData}
-            setFormData={setFormData}
-            handleCreateSubmit={handleCreateSubmit}
-          />
+        {canOrganize && (
+          <button
+            onClick={() => setActiveTab("checkin")}
+            className={`px-4 py-3 text-sm font-bold ${activeTab === "checkin" ? "border-b-2 border-[#f4b860] text-[#f4b860]" : "text-white/55"}`}
+          >
+            Check-in
+          </button>
+        )}
+        {user.role === "admin" && (
+          <button
+            onClick={() => setActiveTab("admin")}
+            className={`px-4 py-3 text-sm font-bold ${activeTab === "admin" ? "border-b-2 border-[#f4b860] text-[#f4b860]" : "text-white/55"}`}
+          >
+            Admin
+          </button>
         )}
       </div>
+
+      {activeTab === "registered" ? (
+        <RegisteredEventsSection
+          user={user}
+          registeredEvents={registeredEvents}
+          onCancelRegistration={onCancelRegistration}
+        />
+      ) : activeTab === "checkin" ? (
+        <CheckInPanel events={createdEvents} onCheckedIn={onCheckedIn} />
+      ) : activeTab === "admin" ? (
+        <AdminPanel
+          events={adminEvents}
+          onApproveEvent={onApproveEvent}
+          onRefresh={onRefresh}
+          onUserRoleUpdate={onUserRoleUpdate}
+        />
+      ) : (
+        <CreatedEventsSection
+          user={user}
+          createdEvents={createdEvents}
+          onDeleteEvent={onDeleteEvent}
+          onApproveEvent={onApproveEvent}
+          showCreateForm={showCreateForm}
+          setShowCreateForm={setShowCreateForm}
+          formData={formData}
+          setFormData={setFormData}
+          handleCreateSubmit={handleCreateSubmit}
+          editingEventId={editingEventId}
+          setEditingEventId={setEditingEventId}
+        />
+      )}
     </div>
   );
 }

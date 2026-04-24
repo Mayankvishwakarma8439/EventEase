@@ -1,91 +1,83 @@
-import { Calendar, LogOut, Search } from "lucide-react";
+import { Calendar, LayoutDashboard, LogIn, LogOut, Search } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-export default function Navbar({
-  user,
-  onPageChange,
-  onLogout,
-  searchQuery,
-  onSearchChange,
-}) {
+export default function Navbar({ user, onLogout, searchQuery, onSearchChange }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthPage =
+    location.pathname === "/login" || location.pathname === "/signup";
+
   return (
-    <nav className="sticky top-4 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => onPageChange("home")}
-              className="flex cursor-pointer items-center gap-3 rounded-full px-3 py-2 bg-white/5 backdrop-blur-xs border border-white/6 hover:scale-105 transform transition"
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#101214]/95 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-4 py-3">
+          <div className="flex min-w-0 items-center gap-4">
+            <Link
+              to="/"
+              className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10"
             >
-              <div className="p-2 rounded-full bg-gradient-to-tr from-[#7c3aed] to-[#06b6d4] shadow-sm">
-                <Calendar className="w-5 h-5 text-white" />
+              <div className="rounded-md bg-[#f4b860] p-2">
+                <Calendar className="h-5 w-5 text-[#101214]" />
               </div>
-              <div className="text-lg font-semibold tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-tr from-purple-300 to-cyan-200">
-                  EventEase
-                </span>
-              </div>
-            </button>
+              <span className="text-lg font-bold text-white">EventEase</span>
+            </Link>
 
-            <div className="hidden md:flex items-center gap-2 ml-2">
-              <div className="relative">
-                <div className="flex items-center gap-2 bg-white/4 border border-white/6 rounded-full px-3 py-2 backdrop-blur-xs">
-                  <Search className="w-4 h-4 text-white/80" />
+            {!isAuthPage && (
+              <div className="hidden items-center gap-2 md:flex">
+                <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2">
+                  <Search className="h-4 w-4 text-white/70" />
                   <input
                     value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder="Search events, locations, organizers..."
-                    className="bg-transparent outline-none placeholder:text-white/60 text-sm w-72 text-white"
+                    onChange={(event) => onSearchChange(event.target.value)}
+                    placeholder="Search events, tags, organizers..."
+                    className="w-72 bg-transparent text-sm text-white outline-none placeholder:text-white/45"
                   />
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3">
-              <button
-                onClick={() => onPageChange("home")}
-                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/6 transition"
-              >
-                Explore
-              </button>
-              {user && (
-                <button
-                  onClick={() => onPageChange("dashboard")}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/6 transition"
-                >
-                  My Dashboard
-                </button>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="hidden rounded-md px-3 py-2 text-sm font-medium transition hover:bg-white/10 sm:block"
+            >
+              Explore
+            </Link>
 
             {user ? (
               <>
-                <div className="flex items-center gap-3">
-                  <div className="px-3 py-2 rounded-full bg-blue-400/6 border border-white/8 text-blue-300 text-sm">
-                    {user.name}
-                  </div>
-                  <button
-                    onClick={onLogout}
-                    title="Logout"
-                    className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/6 rounded-lg hover:scale-105 transform transition"
-                  >
-                    <LogOut className="w-4 h-4 text-white" />
-                    <span className="text-sm">Logout</span>
-                  </button>
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition hover:bg-white/10"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <div className="hidden rounded-md border border-white/10 bg-white/8 px-3 py-2 text-sm text-[#f4b860] sm:block">
+                  {user.name} · {user.role}
                 </div>
+                <button
+                  onClick={onLogout}
+                  title="Logout"
+                  className="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10"
+                >
+                  <LogOut className="h-4 w-4 text-white" />
+                  <span className="hidden text-sm sm:inline">Logout</span>
+                </button>
               </>
             ) : (
               <>
                 <button
-                  onClick={() => onPageChange("login")}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/6 transition"
+                  onClick={() => navigate("/login")}
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition hover:bg-white/10"
                 >
+                  <LogIn className="h-4 w-4" />
                   Login
                 </button>
                 <button
-                  onClick={() => onPageChange("signup")}
-                  className="px-3 py-2 rounded-md text-sm font-semibold bg-gradient-to-tr from-[#7c3aed] to-[#06b6d4] shadow text-black"
+                  onClick={() => navigate("/signup")}
+                  className="rounded-md bg-[#f4b860] px-3 py-2 text-sm font-bold text-[#101214]"
                 >
                   Sign Up
                 </button>

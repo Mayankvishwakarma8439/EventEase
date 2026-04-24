@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
 const loginController = async (req, res) => {
   const { email, password } = req.body;
@@ -9,7 +10,7 @@ const loginController = async (req, res) => {
       .status(400)
       .json({ success: false, message: "All fields are must" });
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: String(email).toLowerCase().trim() });
   if (!user)
     return res
       .status(400)
@@ -21,7 +22,7 @@ const loginController = async (req, res) => {
       .status(400)
       .json({ success: false, message: "Incorrect password" });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user._id }, env.jwtSecret, {
     expiresIn: "7d",
   });
 
@@ -33,19 +34,22 @@ const loginController = async (req, res) => {
       id: user._id,
       name: user.username,
       email: user.email,
+      role: user.role,
+      department: user.department,
     },
   });
 };
 
 const signupController = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role, department } = req.body;
 
   if (!username || !email || !password)
     return res
       .status(400)
       .json({ success: false, message: "All fields are must" });
 
-  const exists = await User.findOne({ email });
+  const normalizedEmail = String(email).toLowerCase().trim();
+  const exists = await User.findOne({ email: normalizedEmail });
   if (exists)
     return res
       .status(400)
@@ -54,12 +58,14 @@ const signupController = async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
 
   const user = await User.create({
-    username,
-    email,
+    username: username.trim(),
+    email: normalizedEmail,
     password: hash,
+    role: ["student", "organizer"].includes(role) ? role : "student",
+    department: department || "",
   });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user._id }, env.jwtSecret, {
     expiresIn: "7d",
   });
 
@@ -71,6 +77,8 @@ const signupController = async (req, res) => {
       id: user._id,
       name: user.username,
       email: user.email,
+      role: user.role,
+      department: user.department,
     },
   });
 };

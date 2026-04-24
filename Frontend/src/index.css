@@ -17,6 +17,11 @@
   border-color: rgba(167, 139, 250, 0.5);
   box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
 }
+
+.glass-input option {
+  background: #17191c;
+  color: white;
+}
 @keyframes fadeIn {
   0% {
     opacity: 0;

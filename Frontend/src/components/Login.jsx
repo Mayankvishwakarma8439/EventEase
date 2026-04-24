@@ -1,7 +1,8 @@
 import { Calendar } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
-export default function LoginPage({ onLogin, onPageChange }) {
+export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -76,12 +77,9 @@ export default function LoginPage({ onLogin, onPageChange }) {
 
         <p className="text-center mt-6 text-white/70">
           Don’t have an account?{" "}
-          <button
-            onClick={() => onPageChange("signup")}
-            className="text-cyan-300 hover:text-cyan-200 underline font-medium"
-          >
+          <Link to="/signup" className="text-cyan-300 hover:text-cyan-200 underline font-medium">
             Sign Up
-          </button>
+          </Link>
         </p>
       </div>
     </div>

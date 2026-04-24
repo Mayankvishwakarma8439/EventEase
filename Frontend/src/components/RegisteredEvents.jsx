@@ -1,8 +1,10 @@
 import DashboardEventCard from "./DashboardEventCard";
+import { getUserId } from "../utils/eventHelpers";
 
 export default function RegisteredEventsSection({
   registeredEvents,
   onCancelRegistration,
+  user,
 }) {
   if (!registeredEvents.length)
     return (
@@ -12,21 +14,45 @@ export default function RegisteredEventsSection({
     );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {registeredEvents.map((event) => (
         <DashboardEventCard
           key={event.id}
           event={event}
           actionButton={
-            <button
-              onClick={() => onCancelRegistration(event.id)}
-              className="w-full py-2 rounded-lg bg-red-500/20 border border-red-400/40 text-red-300 font-medium hover:bg-red-500/30 transition"
-            >
-              Cancel Registration
-            </button>
+            <TicketActions event={event} user={user} onCancelRegistration={onCancelRegistration} />
           }
         />
       ))}
+    </div>
+  );
+}
+
+function TicketActions({ event, user, onCancelRegistration }) {
+  const attendee = event.attendees?.find((item) => {
+    const attendeeId = item.user?._id || item.user || item._id;
+    return attendeeId === getUserId(user) && item.status !== "cancelled";
+  });
+
+  return (
+    <div className="space-y-3">
+      {attendee && (
+        <div className="rounded-md border border-[#f4b860]/30 bg-[#f4b860]/10 p-3">
+          <div className="text-xs font-bold uppercase text-[#f4b860]">Ticket Code</div>
+          <div className="mt-1 font-mono text-2xl font-black tracking-widest text-white">
+            {attendee.ticketCode}
+          </div>
+          <div className="mt-1 text-xs text-white/50">
+            {attendee.paymentStatus} · {attendee.status}
+          </div>
+        </div>
+      )}
+      <button
+        onClick={() => onCancelRegistration(event.id)}
+        className="w-full rounded-md border border-red-400/40 bg-red-500/15 px-3 py-2 font-semibold text-red-200 transition hover:bg-red-500/25"
+      >
+        Cancel Registration
+      </button>
     </div>
   );
 }
