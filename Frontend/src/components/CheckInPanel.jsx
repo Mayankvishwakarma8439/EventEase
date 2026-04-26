@@ -12,8 +12,25 @@ export default function CheckInPanel({ events, onCheckedIn }) {
   const streamRef = useRef(null);
   const selectedEvent = events.find((event) => event.id === eventId);
 
+  useEffect(() => {
+    if (!events.length) {
+      setEventId("");
+      return;
+    }
+
+    const exists = events.some((event) => event.id === eventId);
+    if (!exists) {
+      setEventId(events[0].id);
+    }
+  }, [events, eventId]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!events.length) {
+      toast.error("No events available for check-in");
+      return;
+    }
+
     if (!eventId || !ticketCode.trim()) {
       toast.error("Select an event and enter a ticket code");
       return;
@@ -94,6 +111,7 @@ export default function CheckInPanel({ events, onCheckedIn }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <select value={eventId} onChange={(e) => setEventId(e.target.value)} className="glass-input w-full">
+            {!events.length && <option value="">No events available</option>}
             {events.map((event) => (
               <option key={event.id} value={event.id}>{event.title}</option>
             ))}
@@ -141,7 +159,6 @@ export default function CheckInPanel({ events, onCheckedIn }) {
                     <div>{attendee.user?.email || "No email"}</div>
                   </div>
                   <div className="text-left sm:text-right">
-                    <div className="font-mono font-bold text-[#f4b860]">{attendee.ticketCode}</div>
                     <div className="text-xs text-white/45">{attendee.status} · {attendee.paymentStatus}</div>
                   </div>
                 </div>

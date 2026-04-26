@@ -19,7 +19,8 @@ export default function DashboardPage({
   onRefresh,
   onUserRoleUpdate,
 }) {
-  const canOrganize = true;
+  const canOrganize = ["organizer", "admin"].includes(user.role);
+  const checkInEvents = user.role === "admin" ? adminEvents : createdEvents;
   const [activeTab, setActiveTab] = useState("created");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState(emptyEventForm);
@@ -109,7 +110,7 @@ export default function DashboardPage({
           onCancelRegistration={onCancelRegistration}
         />
       ) : activeTab === "checkin" ? (
-        <CheckInPanel events={createdEvents} onCheckedIn={onCheckedIn} />
+        <CheckInPanel events={checkInEvents} onCheckedIn={onCheckedIn} />
       ) : activeTab === "admin" ? (
         <AdminPanel
           events={adminEvents}

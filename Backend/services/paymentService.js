@@ -2,6 +2,10 @@ import crypto from "crypto";
 import { env } from "../config/env.js";
 
 const paymentIntents = new Map();
+const buildRazorpayReceipt = () => {
+  // Razorpay receipt must be <= 40 chars; keep it short and simple.
+  return `evt_${crypto.randomBytes(8).toString("hex")}`;
+};
 
 export const createPaymentIntent = async ({ event, user }) => {
   if (Number(event.price || 0) <= 0) {
@@ -31,7 +35,7 @@ export const createPaymentIntent = async ({ event, user }) => {
       body: JSON.stringify({
         amount: Math.round(Number(event.price) * 100),
         currency: "INR",
-        receipt: `evt_${event._id}_${user._id}`,
+        receipt: buildRazorpayReceipt(),
         notes: {
           eventId: event._id.toString(),
           userId: user._id.toString(),

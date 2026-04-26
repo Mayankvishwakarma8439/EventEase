@@ -113,7 +113,7 @@ function App() {
         const intentData = await eventApi.createPaymentIntent(eventId);
         const intent = intentData.paymentIntent;
 
-        if (intent.provider === "razorpay" && window.Razorpay) {
+        if (intent.provider === "razorpay") {
           payment = await openRazorpayCheckout({
             event,
             intent,

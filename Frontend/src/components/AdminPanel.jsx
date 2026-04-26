@@ -54,9 +54,20 @@ export default function AdminPanel({
                 event={event}
                 showMetrics
                 actionButton={
-                  <button onClick={() => onApproveEvent(event.id)} className="w-full rounded-md bg-emerald-500 px-3 py-2 font-bold text-white">
-                    Approve and Publish
-                  </button>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <button
+                      onClick={() => onApproveEvent(event.id)}
+                      className="w-full rounded-md bg-emerald-500 px-3 py-2 font-bold text-white"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => onApproveEvent(event.id, "rejected")}
+                      className="w-full rounded-md border border-red-400/40 bg-red-500/15 px-3 py-2 font-bold text-red-200"
+                    >
+                      Reject
+                    </button>
+                  </div>
                 }
               />
             ))}

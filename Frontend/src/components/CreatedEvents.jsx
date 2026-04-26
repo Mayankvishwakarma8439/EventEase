@@ -127,7 +127,17 @@ export default function CreatedEventsSection({
             <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="glass-input" />
             <input type="time" required value={formData.time} onChange={(e) => setFormData({ ...formData, time: e.target.value })} className="glass-input" />
             <input type="number" min="1" required placeholder="Capacity" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} className="glass-input" />
-            <input type="number" min="0" placeholder="Price" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="glass-input" />
+            <label className="flex flex-col gap-2 text-sm text-white/70">
+              Event Price (INR)
+              <input
+                type="number"
+                min="0"
+                placeholder="Enter event price"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="glass-input"
+              />
+            </label>
             <input placeholder="Tags, comma separated" value={formData.tags} onChange={(e) => setFormData({ ...formData, tags: e.target.value })} className="glass-input md:col-span-2" />
             <input placeholder="Venue details" value={formData.venueDetails} onChange={(e) => setFormData({ ...formData, venueDetails: e.target.value })} className="glass-input md:col-span-2" />
             <input placeholder="Target audience" value={formData.targetAudience} onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })} className="glass-input md:col-span-2" />

@@ -58,6 +58,11 @@ export const getEventById = async (req, res) => {
 export const createEvent = async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!["organizer", "admin"].includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only organizers can create events" });
+    }
 
     const validation = validateEventPayload(req.body);
     if (!validation.isValid) {
